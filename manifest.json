@@ -1,0 +1,12 @@
+{
+ "name": "أمير عيد",
+ "short_name": "أمير عيد",
+ "start_url": "./index.html",
+ "display": "standalone",
+ "background_color": "#121212",
+ "theme_color": "#121212",
+ "icons": [
+  {"src":"https://api.dicebear.com/7.x/initials/png?seed=AE&size=192","sizes":"192x192","type":"image/png"},
+  {"src":"https://api.dicebear.com/7.x/initials/png?seed=AE&size=512","sizes":"512x512","type":"image/png"}
+ ]
+}
