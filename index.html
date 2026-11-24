@@ -117,10 +117,10 @@ async function search(q){
  $('main').innerHTML='<div class="msg">جاري البحث...</div>';
  try{
   const [a,t]=await Promise.all([
-   jsonp(API+'/search/artist?limit=12&q='+encodeURIComponent(q)),
+   jsonp(API+'/search/artist?limit=25&q='+encodeURIComponent(q)),
    jsonp(API+'/search/track?limit=50&q='+encodeURIComponent(q))
   ]);
-  const ar=a.data||[],tr=(t.data||[]).map(x=>mk(x));
+  const ar=(a.data||[]).filter(x=>x.nb_album!==0).sort((x,y)=>(y.nb_fan||0)-(x.nb_fan||0)).slice(0,12),tr=(t.data||[]).map(x=>mk(x));
   let h='';
   if(ar.length)h+='<h2>المطربين</h2><div class="artists">'+ar.map(x=>'<div class="ar" data-a="'+x.id+'" data-n="'+esc(x.name)+'" data-p="'+esc(x.picture_medium)+'"><img src="'+esc(x.picture_medium)+'" alt="">'+esc(x.name)+'</div>').join('')+'</div>';
   if(tr.length)h+='<h2>الأغاني</h2>'+rows('s',tr);
@@ -134,10 +134,11 @@ async function openArtist(id,name,pic){
  $('main').innerHTML='<button class="back" id="bk">→ رجوع</button><div class="hero"><img src="'+esc(pic)+'" alt=""><h1>'+esc(name)+'</h1></div><div class="msg">جاري تحميل الألبومات...</div>';
  $('bk').onclick=()=>search($('q').value);
  try{
-  const al=await pages(API+'/artist/'+id+'/albums?limit=100');
+  const [al,top]=await Promise.all([pages(API+'/artist/'+id+'/albums?limit=100'),jsonp(API+'/artist/'+id+'/top?limit=50')]);
+  const tp=(top.data||[]).map(x=>mk(x));
   al.sort((x,y)=>(y.release_date||'').localeCompare(x.release_date||''));
   const html=al.map(x=>'<div class="alb" data-al="'+x.id+'" data-c="'+esc(x.cover_medium)+'"><img src="'+esc(x.cover_medium)+'" alt=""><div><b>'+esc(x.title)+'</b><small>'+esc((x.release_date||'').slice(0,4))+'</small></div></div><div class="tracks" id="al'+x.id+'" hidden></div>').join('');
-  $('main').querySelector('.msg').outerHTML='<h2>كل الألبومات ('+al.length+')</h2>'+(html||'<div class="msg">لا توجد ألبومات.</div>');
+  $('main').querySelector('.msg').outerHTML=(tp.length?'<h2>أشهر الأغاني</h2>'+rows('top',tp):'')+(al.length?'<h2>كل الألبومات ('+al.length+')</h2>'+html:'')+(!tp.length&&!al.length?'<div class="msg">مفيش أغاني لهذا المطرب في ديزر. جرّب تبحث باسم الأغنية.</div>':'');
  }catch(e){
   $('main').querySelector('.msg').textContent='تعذر التحميل، جرب تاني.';
  }
