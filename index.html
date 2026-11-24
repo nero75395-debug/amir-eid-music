@@ -144,10 +144,18 @@ async function openArtist(id,name,pic){
  try{
   const top=await jsonp(API+'/artist/'+id+'/top?limit=50');
   const al=await pages(API+'/artist/'+id+'/albums?limit=100');
-  const tp=(top.data||[]).map(x=>mk(x));
+  let tp=(top.data||[]).map(x=>mk(x));
+  let dbg='top:'+tp.length+' albums:'+al.length;
+  if(!tp.length&&!al.length){
+   try{
+    const f=await jsonp(API+'/search/track?limit=100&q='+encodeURIComponent('artist:"'+name+'"'));
+    tp=(f.data||[]).map(x=>mk(x));
+    dbg+=' fallback:'+tp.length;
+   }catch(e){dbg+=' fallback-err:'+e.message}
+  }
   al.sort((x,y)=>(y.release_date||'').localeCompare(x.release_date||''));
   const html=al.map(x=>'<div class="alb" data-al="'+x.id+'" data-c="'+esc(x.cover_medium)+'"><img src="'+esc(x.cover_medium)+'" alt=""><div><b>'+esc(x.title)+'</b><small>'+esc((x.release_date||'').slice(0,4))+'</small></div></div><div class="tracks" id="al'+x.id+'" hidden></div>').join('');
-  $('main').querySelector('.msg').outerHTML=(tp.length?'<h2>أشهر الأغاني</h2>'+rows('top',tp):'')+(al.length?'<h2>كل الألبومات ('+al.length+')</h2>'+html:'')+(!tp.length&&!al.length?'<div class="msg">مفيش أغاني لهذا المطرب في ديزر. جرّب تبحث باسم الأغنية.</div>':'');
+  $('main').querySelector('.msg').outerHTML=(tp.length?'<h2>أشهر الأغاني</h2>'+rows('top',tp):'')+(al.length?'<h2>كل الألبومات ('+al.length+')</h2>'+html:'')+(!tp.length&&!al.length?'<div class="msg">مفيش أغاني لهذا المطرب في ديزر. جرّب تبحث باسم الأغنية.<br><small dir="ltr">'+dbg+'</small></div>':'');
  }catch(e){
   $('main').querySelector('.msg').textContent='تعذر التحميل، جرب تاني.';
  }
